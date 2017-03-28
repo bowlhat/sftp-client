@@ -12,11 +12,15 @@ import (
 )
 
 // BackupFiles backup remote files
-func (c *SFTPClient) BackupFiles(destination string, files []string) (r <-chan ErrorResponse) {
+func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-chan savedCountChannel, r <-chan ErrorResponse) {
 	responseChannel := make(chan ErrorResponse)
+	savedChannel := make(chan bool)
 
 	go func() {
-		defer close(responseChannel)
+		defer func() {
+			close(responseChannel)
+			close(savedChannel)
+		}()
 		var err error
 		if _, err = os.Stat(destination); err != nil {
 			if err2 := os.Mkdir(destination, 755); err2 != nil {
@@ -56,6 +60,7 @@ func (c *SFTPClient) BackupFiles(destination string, files []string) (r <-chan E
 			if err := c.TarFile(tw, filename); err != nil {
 				responseChannel <- ErrorResponse{err}
 			}
+			savedChannel <- true
 		}
 	}()
 
