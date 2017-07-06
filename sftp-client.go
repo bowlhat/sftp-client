@@ -19,7 +19,7 @@ type ErrorResponse struct {
 
 // FileResponse ...
 type FileResponse struct {
-	file string
+	File string
 	Err  error
 }
 
@@ -29,7 +29,7 @@ type FolderMapping struct {
 	Remote string
 }
 
-// New Make new SFTP Connection
+// New SFTP Connection
 func New(hostname string, port int, username string, password string) (client *SFTPClient, err error) {
 	ssh, err := sshclient.New(hostname, port, username, password)
 	if err != nil {
@@ -45,7 +45,7 @@ func New(hostname string, port int, username string, password string) (client *S
 	return &SFTPClient{client: sftpClient, connection: ssh}, nil
 }
 
-// Close close the SFTP session
+// Close the SFTP session
 func (c *SFTPClient) Close() error {
 	return c.connection.Close()
 }

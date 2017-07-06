@@ -7,12 +7,13 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-// BackupFiles backup remote files
-func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-chan savedCountChannel, r <-chan ErrorResponse) {
+// Backup remote files
+func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-chan bool, r <-chan ErrorResponse) {
 	responseChannel := make(chan ErrorResponse)
 	savedChannel := make(chan bool)
 
@@ -23,15 +24,16 @@ func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-ch
 		}()
 		var err error
 		if _, err = os.Stat(destination); err != nil {
-			if err2 := os.Mkdir(destination, 755); err2 != nil {
+			if err2 := os.Mkdir(destination, 0755); err2 != nil {
 				responseChannel <- ErrorResponse{Err: fmt.Errorf("Cannot access folder: %s; Failed to create folder: %s", err, err2)}
 			}
 		}
 
+		tarFileName := fmt.Sprintf("%s.tar.gz", time.Now().UTC().Format("20060102-150405"))
 		// create a file and get a handle to write gzipped data to
-		tarfile := fmt.Sprintf("%s/%s.tar.gz", destination, time.Now().UTC().Format("20060102-150405"))
+		tarPath := filepath.Join(destination, tarFileName)
 		var zbuf *os.File
-		if zbuf, err = os.Create(tarfile); err != nil {
+		if zbuf, err = os.Create(tarPath); err != nil {
 			responseChannel <- ErrorResponse{err}
 		}
 		defer func() {
@@ -64,10 +66,10 @@ func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-ch
 		}
 	}()
 
-	return responseChannel
+	return savedChannel, responseChannel
 }
 
-// TarFile add a remote file into tar archive
+// Add a remote file into tar archive
 func (c *SFTPClient) TarFile(w *tar.Writer, filename string) error {
 	f, err := c.client.Open(filename)
 	if err != nil {

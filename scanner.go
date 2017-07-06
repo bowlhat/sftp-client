@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-// FindRemoteFiles find files under a path on the remote system
+// Find Remote Files
 func (c *SFTPClient) FindRemoteFiles(path string) func() (r <-chan FileResponse) {
 	return func() (r <-chan FileResponse) {
 		responseChannel := make(chan FileResponse)
@@ -14,24 +14,24 @@ func (c *SFTPClient) FindRemoteFiles(path string) func() (r <-chan FileResponse)
 			defer close(responseChannel)
 			stats, err := c.client.Lstat(path)
 			if err != nil {
-				responseChannel <- FileResponse{file: "", Err: fmt.Errorf("Cannot STAT 'remote:%s': %v", path, err)}
+				responseChannel <- FileResponse{File: "", Err: fmt.Errorf("Cannot STAT 'remote:%s': %v", path, err)}
 				return
 			}
 			if !stats.IsDir() {
-				responseChannel <- FileResponse{file: "", Err: fmt.Errorf("'remote:%s' is not a directory", path)}
+				responseChannel <- FileResponse{File: "", Err: fmt.Errorf("'remote:%s' is not a directory", path)}
 				return
 			}
 
 			var walker = *c.client.Walk(path)
 			for walker.Step() {
 				if err := walker.Err(); err != nil {
-					responseChannel <- FileResponse{file: "", Err: err}
+					responseChannel <- FileResponse{File: "", Err: err}
 					continue
 				}
 				if walker.Path() == path {
 					continue
 				}
-				responseChannel <- FileResponse{file: walker.Path(), Err: nil}
+				responseChannel <- FileResponse{File: walker.Path(), Err: nil}
 			}
 		}()
 
@@ -64,7 +64,7 @@ func findRemoteFilesAggregator(functions []func() (r <-chan FileResponse)) (r <-
 	return responseChannel
 }
 
-// FindAllRemoteFiles find all files in paths on remote location
+// Find All Remote Files
 func (c *SFTPClient) FindAllRemoteFiles(paths []string) ([]string, error) {
 	var functions []func() (r <-chan FileResponse)
 	var files []string
@@ -81,7 +81,7 @@ func (c *SFTPClient) FindAllRemoteFiles(paths []string) ([]string, error) {
 			log.Println(response.Err)
 		}
 		if encounteredErrors == 0 {
-			files = append(files, response.file)
+			files = append(files, response.File)
 		}
 	}
 
