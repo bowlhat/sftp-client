@@ -23,10 +23,16 @@ func (c *SFTPClient) CreateDir(remoteFolderName string) error {
 	return nil
 }
 
-// Create a folder hierarchy on remote location
+// CreateDirHierarchy Create a folder hierarchy on remote location
 func (c *SFTPClient) CreateDirHierarchy(remoteFolderTree string) error {
-	tree := strings.Split(remoteFolderTree, "/")
 	parent := "."
+	if strings.HasPrefix(remoteFolderTree, "/") {
+		parent = "/"
+		remoteFolderTree = strings.TrimPrefix(remoteFolderTree, "/")
+	}
+
+	tree := strings.Split(remoteFolderTree, "/")
+
 	for _, dir := range tree {
 		parent = strings.Join([]string{parent, dir}, "/")
 		if err := c.CreateDir(parent); err != nil {
