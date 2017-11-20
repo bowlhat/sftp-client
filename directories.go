@@ -6,32 +6,32 @@ import (
 	"strings"
 )
 
-// Create a folder on remote location
-func (c *SFTPClient) CreateDir(remoteFolderName string) error {
-	if _, err := c.client.Lstat(remoteFolderName); err != nil {
+// CreateDir creates a folder on remote location
+func (c *SFTPClient) CreateDir(remoteFolderPath string) error {
+	if _, err := c.client.Lstat(remoteFolderPath); err != nil {
 		if os.IsNotExist(err) {
-			if err := c.client.Mkdir(remoteFolderName); err != nil {
-				return fmt.Errorf("Could not create folder 'remote:%s': %v", remoteFolderName, err)
+			if err := c.client.Mkdir(remoteFolderPath); err != nil {
+				return fmt.Errorf("Could not create folder 'remote:%s': %v", remoteFolderPath, err)
 			}
-			if err := c.client.Chmod(remoteFolderName, 0755); err != nil {
-				return fmt.Errorf("Could not set folder permissions on 'remote:%s': %v", remoteFolderName, err)
+			if err := c.client.Chmod(remoteFolderPath, 0755); err != nil {
+				return fmt.Errorf("Could not set folder permissions on 'remote:%s': %v", remoteFolderPath, err)
 			}
 		} else {
-			return fmt.Errorf("Error finding 'remote:%s': %v", remoteFolderName, err)
+			return fmt.Errorf("Error finding 'remote:%s': %v", remoteFolderPath, err)
 		}
 	}
 	return nil
 }
 
-// CreateDirHierarchy Create a folder hierarchy on remote location
-func (c *SFTPClient) CreateDirHierarchy(remoteFolderTree string) error {
+// CreateDirHierarchy creates a folder hierarchy on remote location
+func (c *SFTPClient) CreateDirHierarchy(remoteFolderPath string) error {
 	parent := "."
-	if strings.HasPrefix(remoteFolderTree, "/") {
+	if strings.HasPrefix(remoteFolderPath, "/") {
 		parent = "/"
-		remoteFolderTree = strings.TrimPrefix(remoteFolderTree, "/")
+		remoteFolderPath = strings.TrimPrefix(remoteFolderPath, "/")
 	}
 
-	tree := strings.Split(remoteFolderTree, "/")
+	tree := strings.Split(remoteFolderPath, "/")
 
 	for _, dir := range tree {
 		parent = strings.Join([]string{parent, dir}, "/")

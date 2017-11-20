@@ -12,16 +12,20 @@ import (
 	"time"
 )
 
-// Backup remote files
-func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-chan bool, r <-chan ErrorResponse) {
+// BackupFiles saves remote files to a local tar.gz file
+func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-chan bool, r <-chan ErrorResponse, done <-chan bool) {
 	responseChannel := make(chan ErrorResponse)
 	savedChannel := make(chan bool)
+	doneChannel := make(chan bool)
 
 	go func() {
 		defer func() {
+			doneChannel <- true
 			close(responseChannel)
 			close(savedChannel)
+			close(doneChannel)
 		}()
+
 		var err error
 		if _, err = os.Stat(destination); err != nil {
 			if err2 := os.Mkdir(destination, 0755); err2 != nil {
@@ -66,10 +70,10 @@ func (c *SFTPClient) BackupFiles(destination string, files []string) (saved <-ch
 		}
 	}()
 
-	return savedChannel, responseChannel
+	return savedChannel, responseChannel, doneChannel
 }
 
-// Add a remote file into tar archive
+// TarFile adds a remote file into a tar archive
 func (c *SFTPClient) TarFile(w *tar.Writer, filename string) error {
 	f, err := c.client.Open(filename)
 	if err != nil {

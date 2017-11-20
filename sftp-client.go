@@ -6,24 +6,24 @@ import (
 	sshclient "github.com/bowlhat/ssh-client"
 )
 
-// SFTPClient a proxy to sftp.Client
+// SFTPClient is a proxy to sftp.Client
 type SFTPClient struct {
 	client     *sftp.Client
 	connection *sshclient.SSHConnection
 }
 
-// ErrorResponse a response which can only ever be an error
+// ErrorResponse is a response which can only ever be an error
 type ErrorResponse struct {
 	Err error
 }
 
-// FileResponse ...
+// FileResponse is a reponse which contains a filename or error
 type FileResponse struct {
 	File string
 	Err  error
 }
 
-// FolderMapping map local to remote folders
+// FolderMapping maps local to remote folders
 type FolderMapping struct {
 	Local  string
 	Remote string

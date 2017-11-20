@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Get a file from remote location
+// GetFile retreives a file from remote location
 func (c *SFTPClient) GetFile(localFilename string, remoteFilename string) error {
 	stats, err := c.client.Lstat(remoteFilename)
 	if err != nil {
@@ -38,7 +38,7 @@ func (c *SFTPClient) GetFile(localFilename string, remoteFilename string) error 
 	return nil
 }
 
-// Put a local file to remote location
+// PutFile uploads a local file to remote location
 func (c *SFTPClient) PutFile(remoteFileName string, localFileName string) error {
 	localFile, err := os.Open(localFileName)
 	if err != nil {

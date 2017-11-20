@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-// Find Remote Files
+// FindRemoteFiles enumerates files in a remote directory
 func (c *SFTPClient) FindRemoteFiles(path string) func() (r <-chan FileResponse) {
 	return func() (r <-chan FileResponse) {
 		responseChannel := make(chan FileResponse)
@@ -41,30 +41,21 @@ func (c *SFTPClient) FindRemoteFiles(path string) func() (r <-chan FileResponse)
 
 func findRemoteFilesAggregator(functions []func() (r <-chan FileResponse)) (r <-chan FileResponse) {
 	responseChannel := make(chan FileResponse)
-	done := make(chan bool)
 
-	for _, function := range functions {
-		go func(function func() (r <-chan FileResponse)) {
+	go func(functions []func() (r <-chan FileResponse)) {
+		for _, function := range functions {
 			intermediateChannel := function()
 			for response := range intermediateChannel {
 				responseChannel <- response
 			}
-			done <- true
-		}(function)
-	}
-
-	go func() {
-		for range functions {
-			<-done
 		}
 		close(responseChannel)
-		close(done)
-	}()
+	}(functions)
 
 	return responseChannel
 }
 
-// Find All Remote Files
+// FindAllRemoteFiles enumerates all remote files in multiple directories and their descendents
 func (c *SFTPClient) FindAllRemoteFiles(paths []string) ([]string, error) {
 	var functions []func() (r <-chan FileResponse)
 	var files []string
